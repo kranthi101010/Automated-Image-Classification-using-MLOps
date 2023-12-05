@@ -42,10 +42,7 @@ class PrepareBaseModel:
         dense_layer_1 = tf.keras.layers.Dense(units=256, activation='relu')(flatten_in)
         
         # Second additional dense layer
-        dense_layer_2 = tf.keras.layers.Dense(units=128, activation='relu')(dense_layer_1)
-
-        # Second additional dense layer
-        dense_layer_3 = tf.keras.layers.Dense(units=64, activation='relu')(dense_layer_2)
+        dense_layer_3 = tf.keras.layers.Dense(units=64, activation='relu')(dense_layer_1)
 
         prediction = tf.keras.layers.Dense(
             units=classes,
