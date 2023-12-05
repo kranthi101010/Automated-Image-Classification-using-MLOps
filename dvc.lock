@@ -1,0 +1,113 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python src/xRayClassifier/pipeline/stage_01_data_ingestion.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 45e8147ed3e0812e4d987dd12a14fe54
+      size: 568
+    - path: src/xRayClassifier/pipeline/stage_01_data_ingestion.py
+      hash: md5
+      md5: 36e1898f30a4734b19686e8b9a52cc1f
+      size: 929
+    outs:
+    - path: artifacts/data_ingestion/Dataset
+      hash: md5
+      md5: 7ad323468cc62685e70a896876dc0c77.dir
+      size: 220316951
+      nfiles: 301
+  prepare_base_model:
+    cmd: python src/xRayClassifier/pipeline/stage_02_prepare_base_model.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 45e8147ed3e0812e4d987dd12a14fe54
+      size: 568
+    - path: src/xRayClassifier/pipeline/stage_02_prepare_base_model.py
+      hash: md5
+      md5: 1b3d99d905602bcf5d654787abf54d25
+      size: 971
+    params:
+      params.yaml:
+        CLASSES: 2
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+        INCLUDE_TOP: false
+        LEARNING_RATE: 0.001
+        WEIGHTS: imagenet
+    outs:
+    - path: artifacts/prepare_base_model
+      hash: md5
+      md5: e36910ba390454f79cb9297fd92dd5ef.dir
+      size: 118058104
+      nfiles: 2
+  training:
+    cmd: python src/xRayClassifier/pipeline/stage_03_model_trainer.py
+    deps:
+    - path: artifacts/data_ingestion/Dataset
+      hash: md5
+      md5: 7ad323468cc62685e70a896876dc0c77.dir
+      size: 220316951
+      nfiles: 301
+    - path: artifacts/prepare_base_model
+      hash: md5
+      md5: e36910ba390454f79cb9297fd92dd5ef.dir
+      size: 118058104
+      nfiles: 2
+    - path: config/config.yaml
+      hash: md5
+      md5: 45e8147ed3e0812e4d987dd12a14fe54
+      size: 568
+    - path: src/xRayClassifier/pipeline/stage_03_model_trainer.py
+      hash: md5
+      md5: 0e17c7c0f34cf467e70ce4996e25ff03
+      size: 895
+    params:
+      params.yaml:
+        AUGMENTATION: true
+        BATCH_SIZE: 100
+        EPOCHS: 1
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+    outs:
+    - path: artifacts/training/model.h5
+      hash: md5
+      md5: 35bd90789f22c286052987b05c1fce54
+      size: 59138368
+  evaluation:
+    cmd: python src/xRayClassifier/pipeline/stage_04_model_evaluation.py
+    deps:
+    - path: artifacts/data_ingestion/Dataset
+      hash: md5
+      md5: 7ad323468cc62685e70a896876dc0c77.dir
+      size: 220316951
+      nfiles: 301
+    - path: artifacts/training/model.h5
+      hash: md5
+      md5: 35bd90789f22c286052987b05c1fce54
+      size: 59138368
+    - path: config/config.yaml
+      hash: md5
+      md5: 45e8147ed3e0812e4d987dd12a14fe54
+      size: 568
+    - path: src/xRayClassifier/pipeline/stage_04_model_evaluation.py
+      hash: md5
+      md5: 68459d4d85cba0933119c003bca779a7
+      size: 894
+    params:
+      params.yaml:
+        BATCH_SIZE: 100
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+    outs:
+    - path: scores.json
+      hash: md5
+      md5: 925f6ed30097abb18600931c179cc5e3
+      size: 55
