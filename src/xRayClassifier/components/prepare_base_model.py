@@ -30,16 +30,27 @@ class PrepareBaseModel:
     def _prepare_full_model(model, classes, freeze_all, freeze_till, learning_rate):
         if freeze_all:
             for layer in model.layers:
-                model.trainable = False
+                layer.trainable = False
         elif (freeze_till is not None) and (freeze_till > 0):
             for layer in model.layers[:-freeze_till]:
-                model.trainable = False
+                layer.trainable = False
 
+        # Adding new layers to the model
         flatten_in = tf.keras.layers.Flatten()(model.output)
+        
+        # First additional dense layer
+        dense_layer_1 = tf.keras.layers.Dense(units=256, activation='relu')(flatten_in)
+        
+        # Second additional dense layer
+        dense_layer_2 = tf.keras.layers.Dense(units=128, activation='relu')(dense_layer_1)
+
+        # Second additional dense layer
+        dense_layer_3 = tf.keras.layers.Dense(units=64, activation='relu')(dense_layer_2)
+
         prediction = tf.keras.layers.Dense(
             units=classes,
             activation="softmax"
-        )(flatten_in)
+        )(dense_layer_3)
 
         full_model = tf.keras.models.Model(
             inputs=model.input,
@@ -47,13 +58,14 @@ class PrepareBaseModel:
         )
 
         full_model.compile(
-            optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
             loss=tf.keras.losses.CategoricalCrossentropy(),
             metrics=["accuracy"]
         )
 
         full_model.summary()
         return full_model
+
     
 
     def update_base_model(self):
